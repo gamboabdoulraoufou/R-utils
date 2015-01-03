@@ -1,10 +1,17 @@
-# Installation
+#########################################################
+# The following lines of code show how to install RStudio
+# on a linux machine (Debian or Ubuntu)
+#########################################################
+
+# Update 
+$ sudo apt-get update
+
+# Install R
 $ sudo apt-get install r-base
 
-# Installi OpenSSL
+# Install OpenSSL
 $ wget http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl0.9.8_0.9.8o-4squeeze14_amd64.deb
 $ sudo dpkg -i libssl0.9.8_0.9.8o-4squeeze14_amd64.deb
-
 
 # Download and install R Studio
 $ sudo apt-get install gdebi-core
@@ -14,8 +21,7 @@ $ sudo gdebi rstudio-server-0.98.1091-amd64.deb
 # Add user for rstudio
 $ sudo adduser identifiant
 
-# open the port 8787 on your firewall rule
+# open the port 8787
 
 # connect at rstudio on your browser
 http://IP:8787/
-
