@@ -1,3 +1,7 @@
+# Reset R env and clear R console
+rm(list = ls()) # to reset r env
+# Ctrl + L to clear R console
+
 # Chargement des libraries
 library(Hmisc) # histogramme
 library(lattice) # package de graphiques R
