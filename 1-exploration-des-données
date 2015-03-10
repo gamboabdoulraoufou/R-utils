@@ -17,6 +17,6 @@ histogram(~Age | Cible, data = credit, type = "percent", col = "grey", breaks = 
 # Résumé des variables par modalité de la variable cible
 by(credit[,c("Duree_credit", "Montant_credit", "Age")], list(Cible=credit$cible), summary)
 
-# K-Wallis: tester la liaison entre la variable cible et les variables quantitatives
+# K-Wallis: tester l'intensité de la liaison entre la variable cible et les variables quantitatives
 kruskal.test(credit$Age
 
