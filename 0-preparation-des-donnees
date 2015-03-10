@@ -1,1 +1,6 @@
 # Lecture des données
+myVariablesNames <- c("Comptes", "Duree_credit", "Historique_credit", "Objet_credit", "Montant_credit", "Epargne", 
+"Anciennete_emploi", "Taux_effort", "Situation_familiale", "Garanties", "Anciennete_domicile", "Biens", "Age", "Autres_credits", 
+"Statut_domicile", "Nb_credits", "Type_emploi", "Nb_pers_charge", "Telephone", "Etranger", "Cible")
+credit = read.table("http://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data", h=FALSE, 
+col.names=myVariablesNames)
