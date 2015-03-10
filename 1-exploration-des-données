@@ -6,7 +6,7 @@ library()
 # Résumé des variables
 summary(credit)
 
-# Histogramme
+# Histogramme des variables quantitatives
 hist.data.frame(credit[,1:16])
 
 # Analyse des variables continues
@@ -14,5 +14,9 @@ histogram(~Duree_credit | Cible, data = credit, type = "percent", col = "grey", 
 histogram(~Montant_credit | Cible, data = credit, type = "percent", col = "grey", breaks = 10)
 histogram(~Age | Cible, data = credit, type = "percent", col = "grey", breaks = 10)
 
+# Résumé des variables par modalité de la variable cible
+by(credit[,c("Duree_credit", "Montant_credit", "Age")], list(Cible=credit$cible), summary)
 
+# K-Wallis: tester la liaison entre la variable cible et les variables quantitatives
+kruskal.test(credit$Age
 
