@@ -1,1 +1,18 @@
-#
+# Chargement des libraries
+library(Hmisc) # histogramme
+library(lattice) # package de graphiques R
+library()
+
+# Résumé des variables
+summary(credit)
+
+# Histogramme
+hist.data.frame(credit[,1:16])
+
+# Analyse des variables continues
+histogram(~Duree_credit | Cible, data = credit, type = "percent", col = "grey", breaks = 10)
+histogram(~Montant_credit | Cible, data = credit, type = "percent", col = "grey", breaks = 10)
+histogram(~Age | Cible, data = credit, type = "percent", col = "grey", breaks = 10)
+
+
+
