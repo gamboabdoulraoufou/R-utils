@@ -90,6 +90,15 @@ Age <- cut(credit$Age, c(0,25,Inf)
 tab <- table(Age, credit$Cible)
 prop.table(tab,1)
 
+ct <- function (x) {
+    cat ('\n', names(data_)[x], '\n')
+    cbind(prop.table(table(data_[,x], ''\n', data_[,cible]), 1), addmargins(table(data_[,x]))[-nlevels(credit[,x])+1)])
+}
+for (i in (1:ncol(data_))) {
+    if (!(names(data_[i])) %in% c("Cle", "Cible", list_var_quant)) {
+        print (ct(i))
+    }
+}
 
 # Discrétisation automatique des varibles
 
