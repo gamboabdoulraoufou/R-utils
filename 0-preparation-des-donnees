@@ -1,6 +1,7 @@
-#----------------------#
-# Lecture des données -#
-#----------------------#
+# Reset R env and clear R console
+rm(list = ls()) # to reset r env
+# Ctrl + L to clear R console
+
 # Liste des variables
 myVariablesNames <- c("Comptes", "Duree_credit", "Historique_credit", "Objet_credit", "Montant_credit", "Epargne", 
 "Anciennete_emploi", "Taux_effort", "Situation_familiale", "Garanties", "Anciennete_domicile", "Biens", "Age", 
