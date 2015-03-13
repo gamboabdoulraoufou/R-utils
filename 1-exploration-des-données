@@ -1,11 +1,6 @@
-# Reset R env and clear R console
-rm(list = ls()) # to reset r env
-# Ctrl + L to clear R console
-
 # Chargement des libraries
 library(Hmisc) # histogramme
 library(lattice) # package de graphiques R
-library()
 
 # Résumé des variables
 summary(credit)
@@ -19,8 +14,55 @@ histogram(~Montant_credit | Cible, data = credit, type = "percent", col = "grey"
 histogram(~Age | Cible, data = credit, type = "percent", col = "grey", breaks = 10)
 
 # Résumé des variables par modalité de la variable cible
-by(credit[,c("Duree_credit", "Montant_credit", "Age")], list(Cible=credit$cible), summary)
+by(credit[,c("Age", "Duree_credit", "Montant_credit")], list(Cible=credit$cible), summary)
 
 # K-Wallis: tester l'intensité de la liaison entre la variable cible et les variables quantitatives
-kruskal.test(credit$Age
+kruskal.test(credit$Age~credit$Cible)$statistic
+kruskal.test(credit$Duree_credit~credit$Cible)$statistic
+kruskal.test(credit$Montant_credit~credit$Cible)$statistic
+
+# K-Wallis normalisé: tester l'intensité de la liaison entre la variable cible et les variables quantitatives
+sqrt(kruskal.test(credit$Age~credit$Cible)$statistic/sum(!is.na(credit$Age)))
+sqrt(kruskal.test(credit$Duree_credit~credit$Cible)$statistic/sum(!is.na(credit$Duree_credit)))
+sqrt(kruskal.test(credit$Montant_credit~credit$Cible)$statistic/sum(!is.na(credit$Montant_credit)))
+
+# V-Cramer: tester l'intensité de la liaison entre la variable cible et les variables qualitatives
+cramer_function <- function (data_) {
+  options(warn=-1)
+  num_cible = grep(paste('(Cle|', cible, ')', sep=""), names(data_))
+  cramer <- matrix(NA, ncol(data_), 3)
+  for (i in (1:ncol(data_))) {
+    cramer[i,1] <- names(data_[i])
+    cramer[i,2] <- sqrt(chisq.test(table(data_[,i], data_[,num_cible]))$statistic/(length(data_[,2])))
+    cramer[i,3] <- chisq.test(table(data_[,i], data_[,num_cible]))$p.value
+  }
+  colnames (cramer) <- c("Variable", "V de Cramer", "p-value")
+  
+  vcramer <- cramer[order(cramer[,2], decreasing=T),T]
+  
+  print(vcramer)
+}
+
+# Discretisation des varibles
+q <- quantile(credit$Age, seq(0, 1, by=0.1))
+q[1] <- q[1] - 1
+q_age <- cut(credit$Age, q)
+tab <- table(q_age, credit$Cible)
+colnames(tab) <- c("Paye", "Impaye")
+prop.table(tab,1)
+
+# Représentation du taux d'impayé par age
+barplot(t(prop.table(tab,1)[,2]), ylim=c(0, 0.5), las=3, main="Age", ylab="Taux impayés", density=0)
+abline(h=.3, lty=2)
+
+barplot(t(tab),beside=T,ylim=c(0,110),legend.text=colnames(tab),
+  col=c("grey50","grey80"),ylab="Fréquence")
+abline(h=30, lty=2)
+
+# Découpage de la variable Age
+Age <- cut(credit$Age, c(0,25,Inf)
+tab <- table(Age, credit$Cible)
+prop.table(tab,1)
+
+
 
