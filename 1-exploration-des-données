@@ -1,6 +1,11 @@
 # Chargement des libraries
 library(Hmisc) # histogramme
-library(lattice) # package de graphiques R
+library(lattice) # graphiques R
+library(car) # package permettant d'allouer un libellé à une modalité
+library(gmodels) # package qui permet de faire un tableau du style proc freq de sas
+library(questionr) # calcul du v-cramer
+library(corrplot) # affichage du cramer 
+
 
 # Résumé des variables
 summary(credit)
@@ -68,6 +73,24 @@ cramer_function <- function (data_, list_var_quant, cible) {
   print(vcramer)
 }
 
+# V-cramer des variables qualitatives
+cramer_vroise_function <- function (data_) {
+    options(warn=-1)
+    
+    # calcul du cramer
+    cramer <- matrix(NA, ncol(data_), ncol(data_))
+    for (i in (1:ncol(data_))) {
+        for (j in (1:ncol(data_))) {
+            cramer[i,j] <- cramer.v(table(data_[,i], data_[,j]))
+        }
+   }
+   colnames(cramer) <- colnames(data_)
+   rownames(cramer) <- colnames(data_)
+   
+   # Affichage du cramer
+   corrplot(cramer, type='upper', tl.str=45, tl.cl='black', diag=F, addCoef.col='black', addCoefasPercent=T)
+}
+
 # Discretisation manuelle des varibles quantitatives
 ## 
 q <- quantile(credit$Age, seq(0, 1, by=0.1))
@@ -85,20 +108,29 @@ barplot(t(tab),beside=T,ylim=c(0,110),legend.text=colnames(tab),
   col=c("grey50","grey80"),ylab="Fréquence")
 abline(h=30, lty=2)
 
-# Découpage de la variable Age
+## Découpage de la variable Age
 Age <- cut(credit$Age, c(0,25,Inf)
 tab <- table(Age, credit$Cible)
 prop.table(tab,1)
 
+## Fréquence des varibles quali vs cible pour efectuer les regroupements des modalités les plus proches
 ct <- function (x) {
     cat ('\n', names(data_)[x], '\n')
-    cbind(prop.table(table(data_[,x], ''\n', data_[,cible]), 1), addmargins(table(data_[,x]))[-nlevels(credit[,x])+1)])
+    cbind(prop.table(table(data_[,x], data_[,cible]), 1), addmargins(table(data_[,x]))[-(nlevels(data_[,x])+1)])
 }
 for (i in (1:ncol(data_))) {
     if (!(names(data_[i])) %in% c("Cle", "Cible", list_var_quant)) {
         print (ct(i))
     }
 }
+
+## Renommer, regrouper les libellés des varibles qualitatives
+recode(data_[,'Comptes'], "'A11'='Pas de compte'; 'A12'='CC < 0 euros'; c('A13', 'A13')='CC [0-200euros['; 'A14'='CC >200euros' ")
+recode(data_[,'Statut_domicile'], "'A152' = 'Proprietaire'; else='Non proprietaire' ")
+
+## Tableau proc freq
+CrossTable(data_[,'Comptes'], data_[,'Cible'], prop.chisq=F, chisq=T, format="SAS")
+
 
 # Discrétisation automatique des varibles
 
@@ -109,5 +141,5 @@ for (i in (1:ncol(data_))) {
 # Nouvelle liste des varibles quantitatives
 
 
-# Diagramme en barre des varibles quantilatives
+# Diagramme en barre des varibles quantilatives discrétisées
 
