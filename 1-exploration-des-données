@@ -36,6 +36,9 @@ hist_function_by_cible <- function (data_, list_var_quant, cible) {
 # Résumé des variables par modalité de la variable cible
 by(credit[,c("Age", "Duree_credit", "Montant_credit")], list(Cible=credit$cible), summary)
 
+# Correlation
+
+
 # K-Wallis normalisé: tester l'intensité de la liaison entre la variable cible et les variables quantitatives
 k_walis_function <- function (data_, list_var_quant, cible) {
   options(warn=-1)
@@ -54,6 +57,9 @@ k_walis_function <- function (data_, list_var_quant, cible) {
   
   print(k_walis_test)
 }
+
+# K-Wallis croisé
+
 
 # V-Cramer: tester l'intensité de la liaison entre la variable cible et les variables qualitatives
 cramer_function <- function (data_, list_var_quant, cible) {
