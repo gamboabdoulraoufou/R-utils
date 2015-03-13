@@ -143,3 +143,11 @@ CrossTable(data_[,'Comptes'], data_[,'Cible'], prop.chisq=F, chisq=T, format="SA
 
 # Diagramme en barre des varibles quantilatives discrétisées
 
+x1 <- c(23.2,34.5,76.3,65.8,12.6)
+x2 <- c(15.6,12.4,21.8,20,5.2)
+A <- gl(5,1,5,labels=c("a1","a2","a3","a4","a5"))
+data <- cbind(x1,x2)
+rownames(data) <- levels(A)
+barplot(x1,names.arg=levels(A))
+barplot(t(data),beside=T,ylim=c(0,100),legend.text=colnames(data),
+  col=c("grey50","grey80"),ylab="Fréquence")
