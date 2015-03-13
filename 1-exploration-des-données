@@ -5,30 +5,55 @@ library(lattice) # package de graphiques R
 # Résumé des variables
 summary(credit)
 
-# Histogramme des variables quantitatives
-hist.data.frame(credit[,1:16])
+# Listes des varible par catégories
+list_var_quant = c("Age", "Duree_credit", "Montant_credit")
+list_var_qual = c()
+cible = 
 
-# Analyse des variables continues
-histogram(~Duree_credit | Cible, data = credit, type = "percent", col = "grey", breaks = 10)
-histogram(~Montant_credit | Cible, data = credit, type = "percent", col = "grey", breaks = 10)
-histogram(~Age | Cible, data = credit, type = "percent", col = "grey", breaks = 10)
+# Histogramme des variables quantitatives
+hist_function <- function (data_, list_var_quant) {
+    data_ <- data_[,list_var_quant]
+    for (i in (1:length(list_var_quant))) {
+        hist(data_[,i], breaks = 10, col = "lightblue", border = "gray", xlab = "values", 
+        main = colnames(data_)[i], xaxp = c(0, max(data_[,i]), 5))
+    }
+}
+
+# Histogramme des variables quantitatives par modalité de varible cible
+hist_function_by_cible <- function (data_, list_var_quant, cible) {
+    data_ <- cbind(data_[,list_var_quant], data_[,cible])
+    colnames(data_) <- c(list_var_quant, cible)
+    for (i in (1:length(list_var_quant))) {
+        histogram(~colnames(data_)[i] | cible, data = data_, type = "percent", col = "lightblue", breaks = 10)
+    }
+}
 
 # Résumé des variables par modalité de la variable cible
 by(credit[,c("Age", "Duree_credit", "Montant_credit")], list(Cible=credit$cible), summary)
 
-# K-Wallis: tester l'intensité de la liaison entre la variable cible et les variables quantitatives
-kruskal.test(credit$Age~credit$Cible)$statistic
-kruskal.test(credit$Duree_credit~credit$Cible)$statistic
-kruskal.test(credit$Montant_credit~credit$Cible)$statistic
-
 # K-Wallis normalisé: tester l'intensité de la liaison entre la variable cible et les variables quantitatives
-sqrt(kruskal.test(credit$Age~credit$Cible)$statistic/sum(!is.na(credit$Age)))
-sqrt(kruskal.test(credit$Duree_credit~credit$Cible)$statistic/sum(!is.na(credit$Duree_credit)))
-sqrt(kruskal.test(credit$Montant_credit~credit$Cible)$statistic/sum(!is.na(credit$Montant_credit)))
+k_walis_function <- function (data_, list_var_quant, cible) {
+  options(warn=-1)
+  data_ <- cbind(data_[,list_var_quant], data_[,cible])
+  colnames(data_) <- c(list_var_quant, cible)
+  num_cible = grep(paste('(Cle|', cible, ')', sep=""), names(data_))
+  k_walis <- matrix(NA, ncol(data_), 3)
+  for (i in (1:ncol(data_))) {
+    k_walis[i,1] <- names(data_[i])
+    k_walis[i,2] <- kruskal.test(data_[,i]~data_[, cible])$statistic
+    k_walis[i,3] <- sqrt(kruskal.test(data_[,i]~data_[, cible])$statistic/sum(!is.na(data_[,cible])))
+  }
+  colnames (k_walis) <- c("Variable", "K Walis", "K Walis ajusté")
+  
+  k_walis_test <- k_walis[order(k_walis[,3], decreasing=T),T]
+  
+  print(k_walis_test)
+}
 
 # V-Cramer: tester l'intensité de la liaison entre la variable cible et les variables qualitatives
-cramer_function <- function (data_) {
+cramer_function <- function (data_, list_var_quant, cible) {
   options(warn=-1)
+  data_ <- cbind(data_[,list_var_quant], data_[,cible])
   num_cible = grep(paste('(Cle|', cible, ')', sep=""), names(data_))
   cramer <- matrix(NA, ncol(data_), 3)
   for (i in (1:ncol(data_))) {
@@ -43,7 +68,8 @@ cramer_function <- function (data_) {
   print(vcramer)
 }
 
-# Discretisation des varibles
+# Discretisation manuelle des varibles quantitatives
+## 
 q <- quantile(credit$Age, seq(0, 1, by=0.1))
 q[1] <- q[1] - 1
 q_age <- cut(credit$Age, q)
@@ -51,7 +77,7 @@ tab <- table(q_age, credit$Cible)
 colnames(tab) <- c("Paye", "Impaye")
 prop.table(tab,1)
 
-# Représentation du taux d'impayé par age
+## Représentation du taux d'impayé par age
 barplot(t(prop.table(tab,1)[,2]), ylim=c(0, 0.5), las=3, main="Age", ylab="Taux impayés", density=0)
 abline(h=.3, lty=2)
 
@@ -65,4 +91,14 @@ tab <- table(Age, credit$Cible)
 prop.table(tab,1)
 
 
+# Discrétisation automatique des varibles
+
+
+# Nouvelle base d'étude
+
+
+# Nouvelle liste des varibles quantitatives
+
+
+# Diagramme en barre des varibles quantilatives
 
