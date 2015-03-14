@@ -256,8 +256,10 @@ disc <- function (data_, list_var_quant, cible, max_class = 5, resume = 1) {
     }
 }
 
-# Nouvelle liste des varibles quantitatives
 
+## Renommer, regrouper les libellés des varibles qualitatives
+recode(data_[,'Comptes'], "'A11'='Pas de compte'; 'A12'='CC < 0 euros'; c('A13', 'A13')='CC [0-200euros['; 'A14'='CC >200euros' ")
+recode(data_[,'Statut_domicile'], "'A152' = 'Proprietaire'; else='Non proprietaire' ")
 
 # Nouvelle base d'étude
 
