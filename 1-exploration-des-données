@@ -142,103 +142,68 @@ CrossTable(data_[,'Comptes'], data_[,'Cible'], prop.chisq=F, chisq=T, format="SA
 
 # Discrétisation automatique des varibles
 disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo="Nelder-Mead", graphe=0) {
-    # renommage des variable
-    attach(data_)
-    Xt <- x
-    Yt <- y
-    detach(data_)
+  # renommage des variable
+  attach(data_)
+  Xt <- x
+  Yt <- y
+  detach(data_)
+  
+  # Traitement des valeurs manquantes
+  X <- Xt[is.na(Xt)==0]
+  Y <- Yt[is.na(Xt)==0]
+  
+  seuils <- as.vector(quantile(X, seq(0, 1, length=(nbmod+1))))[2:nbmod]
+  
+  fit_auc <- function (s) {
+    s2 <- c(-Inf, unique(s), Inf)
+    qX <- cut(X, s2)
+    tab <- table(qX,Y)
+    logit <- glm(Y~qX, family=binomial(link="logit"))
+    qXn <- predict(logit, newdata=data_[is.na(Xt)==0,], type='response')
+    resultat <- auc(Y, qXn, partial.auc=c(1,pAUC), partial.auc.correct=FALSE) *
+      (1-sum((table(qX)/length(X))^2))/(1-(1-h)*(sum((table(qX)/length(X))^2))) * 
+      ((1-(1-k)*(sum((prop.table(tab,1)[,2])^2)))/(1-sum((prop.table(tab,1)[,2])^2)))
     
-    # Traitement des valeurs manquantes
-    X <- Xt[is.na(Xt)==0]
-    Y <- Yt[is.na(Xt)==0]
+    return (-resultat)
+  }
+  
+  # Application du  decoupage
+  Applical <- function () {
+    sf <- unique(c(-Inf, est$par, Inf)) # pour le cas de plusieurs seuil égaux
+    qX <- cut(Xt, sf)
+    tab <- table (addNA(qX), Yt) 
+    cat('\n', 'Résultat du découpage: ', '\n')
+    cat('\n', 'Seuils % Négat. % Posit. # + # % #', '\n')
+    print(cbind(prop.table(tab,1)*100, tab[,2], table(addNA(qX)), table(addNA(qX))*100/length(Xt)))
+    cat('\n', 'indicateur de convergence (0 = convergence optimisation)', '\n')
+    cat(est$convergence)
+    cat('\n', 'AUC (partiel) maximisée: ', '\n')
+    cat(-est$value)
+    cat('\n', 'Hommogénéité des classes (0 <- faible ... forte -> 0): ', '\n')
+    cat(1-sum((prop.table(table(addNA(qX), Yt), 1)[,2])^2))
     
-    seuils <- as.vector(quantile(X, seq(0, 1, length=(nbmod+1))))[2:nbmod]
-    
-    fit_auc <- function (s) {
-        s2 <- c(-Inf, unique(s), Inf)
-        qX <- cut(X, s2)
-        tab <- table(qX,Y)
-        logit <- glm(Y~qX, family=binomial(link="logit"))
-        qXn <- predict(logit, newdata=data_[is.na(Xt)==0,], type='response')
-        resultat <- auc(Y, qXn, partial.auc=c(1,pAUC), partial.auc.correct=FALSE) *
-                    (1-sum((table(qX)/length(X))^2))/(1-(1-h)*(sum((table(qX)/length(X))^2))) * 
-                    ((1-(1-k)*(sum((prop.table(tab,1)[,2])^2)))/(1-sum((prop.table(tab,1)[,2])^2)))
-        
-        return (-resultat)
-    }
-    
-    # Application du  decoupage
-    Applical <- function () {
-        sf <- unique(c(-Inf, est$par, Inf)) # pour le cas de plusieurs seuil égaux
-        qX <- cut(Xt, sf)
-        tab <- table (addNA(qX), Yt) 
-        cat('\n', 'Résultat du découpage: ', '\n')
-        cat('\n', 'Seuils % Négat. % Posit. # + # % #', '\n')
-        print(cbind(prop.table(tab,1)*100, tab[,2], table(addNA(qX)), table(addNA(qX))*100/length(Xt)))
-        cat('\n', 'indicateur de convergence (0 = convergence optimisation)', '\n')
-        cat(est$convergence)
-        cat('\n', 'AUC (partiel) maximisée: ', '\n')
-        cat(-est$value)
-        cat('\n', 'Hommogénéité des classes (0 <- faible ... forte -> 0): ', '\n')
-        cat(1-sum((prop.table(table(addNA(qX), Yt), 1)[,2])^2))
-        
-        return(qX)
-    }
-    
-    # Calcul de l'aire sous la courbe ROC
-    Gini <- function (t) {
-        cat('\n', 'AUC avant découpage: ', '\n')
-        logit<- glm(Y~X, family=binomial(link='logit'))
-        g1 <- auc(Y, predict(logit, newdata=data_[is.na(Xt)==0,], type='response'))
-        cat(g1)
-        cat('\n', 'AUC après découpage: ', '\n')
-        logit<- glm(Yt~t, family=binomial(link='logit'))
-        g2 <- auc(Yt, predict(logit, newdata=data_, type='response'))
-        cat(g2)
-        evol_auc <- cat(100*(g2-g1)/g1)
-        cat('\n', '% Evolution AUC avant/après découpage ', '\n')
-        return (evol_auc)
-        cat('\n')
-    }
-    
-    # Recherche des seuils optimaux
-    if (calcul == 1) {
-        est <- optim(seuils, fit_auc, method=algo)
-    } else {
-        est <- list()
-        est$par <- bornes
-        est$convergence <- 0
-        est$value <- 0
-    }
-    cat('\n', '-------------------------------------------------------------------------------', '\n')
-    cat('\n', 'Discrétisation de ', substitute(x), 'en ', nbmod, 'classes (algorithme ',algo,'), \n')
-    cat('\n', '-------------------------------------------------------------------------------', '\n')
-    
-    qX1 <- Applical()
-    evol_auc <- Gini (qX1)
-    
-    # Courbe de densité
-    if (graphe == 1) {
-        x11()
-        layout(matrix(c(1,2), 2, 1, byrow = TRUE), heights = c(3,1))
-        par(mar = c(2, 4, 4, 1))
-        base0 <- X[Y==0]
-        base1 <- X[Y==1]
-        xlim1 <- range(c(base0, base1))
-        ylim1 <- c(0, max(max(density(base0)$y), max(density(base1)$y)))
-        plot(density(base0), main = " ", col ="blue", ylab = paste("Densité de ", deparse(substitute(x))), xlim = xlim1, ylim = ylim1, lwd = 2)
-        par(new = TRUE)
-        plot(density(base1), col = "red", lty = 3, lwd = 2, xlim = xlim1, ylim = ylim1, xlab = '', ylab = '', main = ' ')
-        legend('topright', c(paste(deparse(substitute(y)), " = 0"), paste(deparse(substitute(y)), ' = 1')), lty = c(1,3), col = c('blue', 'red'), lwd = 2)
-        abline(v = est$par, lty = 2)
-        texte <- c('Chi2 de K-Wallis = \n\n', round(kruskal.test(X~Y)$statistic, digit = 3))
-        text(xlim1[2]*0.8, ylim1[2]*0.5, texte, cex = 0.75)
-        plot(X~Y, horizontal = TRUE, xlab = deparse(substitute(y)), col = c('blue', 'red'))
-    }
-    
+    return(qX)
+  }
+  
+  # Calcul de l'aire sous la courbe ROC
+  Gini <- function (t) {
+    cat('\n', 'AUC avant découpage: ', '\n')
+    logit<- glm(Y~X, family=binomial(link='logit'))
+    g1 <- auc(Y, predict(logit, newdata=data_[is.na(Xt)==0,], type='response'))
+    cat(g1)
+    cat('\n', 'AUC après découpage: ', '\n')
+    logit<- glm(Yt~t, family=binomial(link='logit'))
+    g2 <- auc(Yt, predict(logit, newdata=data_, type='response'))
+    cat(g2)
+    evol_auc <- 100*(g2-g1)/g1
+    cat('\n', '% Evolution AUC avant/après découpage ', '\n')
+    cat('\n', evol_auc, '\n')
     return (evol_auc)
+    cat('\n')
+  }
 }
 
+# Boucle de discretisation de l'ensemble des varibles 
 disc <- function (data_, list_var_quant, cible, max_class = 5, resume = 1) {
     disc_resume <- matrix(NA, length(list_var_quant), 5)
     for (i in (1:length(list_var_quant))) {
