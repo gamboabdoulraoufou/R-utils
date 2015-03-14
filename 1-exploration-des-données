@@ -150,7 +150,7 @@ disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo
     
     # Traitement des valeurs manquantes
     X <- Xt[is.na(Xt)==0]
-    X <- Yt[is.na(Xt)==0]
+    Y <- Yt[is.na(Xt)==0]
     
     seuils <- as.vector(quantile(X, seq(0, 1, length=(nbmod+1))))[2:nbmod]
     
