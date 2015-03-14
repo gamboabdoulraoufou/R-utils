@@ -141,6 +141,7 @@ CrossTable(data_[,'Comptes'], data_[,'Cible'], prop.chisq=F, chisq=T, format="SA
 
 
 # Discrétisation automatique des varibles
+evol_auc <- NA
 disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo="Nelder-Mead", graphe=0) {
     # renommage des variable
     attach(data_)
@@ -186,7 +187,7 @@ disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo
     }
     
     # Calcul de l'aire sous la courbe ROC
-    GINI <- function (t) {
+    Gini <- function (t) {
         cat('\n', 'AUC avant découpage: ', '\n')
         logit<- glm(Y~X, family=binomial(link='logit'))
         g1 <- auc(Y, predict(logit, newdata=data_[is.na(Xt)==0,], type='response'))
@@ -195,8 +196,9 @@ disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo
         logit<- glm(Yt~t, family=binomial(link='logit'))
         g2 <- auc(Yt, predict(logit, newdata=data_, type='response'))
         cat(g2)
+        evol_auc <- cat(100*(g2-g1)/g1)
         cat('\n', '% Evolution AUC avant/après découpage ', '\n')
-        cat(100*(g2-g1)/g1)
+        return (evol_auc)
         cat('\n')
     }
     
@@ -214,7 +216,7 @@ disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo
     cat('\n', '-------------------------------------------------------------------------------', '\n')
     
     qX1 <- Applical()
-    Gini (qX1)
+    evol_auc <- Gini (qX1)
     
     # Courbe de densité
     if (graphe == 1) {
@@ -234,12 +236,27 @@ disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo
         text(xlim1[2]*0.8, ylim1[2]*0.5, texte, cex = 0.75)
         plot(X~Y, horizontal = TRUE, xlab = deparse(substitute(y)), col = c('blue', 'red'))
     }
+    return (evol_auc)
 }
 
-# Nouvelle base d'étude
-
+disc <- function (data_, list_var_quant, cible, max_class = 5) {
+    disc_resume <- matrix(NA, length(list_var_quant), 5)
+    for (i in (1:length(list_var_quant))) {
+        disc_resume[i,1] <- list_var_quant[i]
+        for (j in (2:max_class)) {
+            evol_auc <- disc_function (data_, list_var_quant[i], cible, nbmod = j, h = 0, k = 0, pAUC = 0.8, graphe = 1)
+            disc_resume[i,j] <- evol_auc 
+        }
+    
+    # Afficher le resumé de la discretisation automatique
+    print (disc_resume)
+    }
+}
 
 # Nouvelle liste des varibles quantitatives
+
+
+# Nouvelle base d'étude
 
 
 # Diagramme en barre des varibles quantilatives discrétisées
