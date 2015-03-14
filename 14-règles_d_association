@@ -1,0 +1,58 @@
+# 0- Chargement des librairies
+library(arules) # Package contenant l'algorithme apriori
+library(arulesViz) # Package de visualisation des règles d'associations
+
+# 1- Préparation des données 
+## 1-1- Liste des varibles discretes
+vardiscr <- c("Cible, Comptes", "Epargne", 
+              "Historique_credit", "Objet_credit", "Situation_familiale",
+              "Garanties", "Biens", "Autres_credits", "Situation_domicile",
+              "type_emploi", "Anciennete_emploi", "Telephone","Nb_pers_charge", 
+              "Taux_effort", "Anciennete_domicile", "Nb_credits")
+
+## 1-2- Conversion du premier champ en factuer
+indices <- names(credit) %in% vardiscr
+for (i in (1:ncol(credit))) {
+    if (indices[i] == 1) {
+        credit[,i] <- factor(credit[,i])      
+    }
+}
+
+## 1-3- discretisation des varibles quantivatives
+Age <- cut (credit$Age, c(0, 25, Inf), right=TRUE)
+Duree_credit <- cut (credit$Duree_credit, c(0, 15, 35, Inf), right=TRUE)
+Montant_credit <- cut (credit$Montant, c(0, 4000, Inf), right=TRUE)
+
+## 1-4- Identification de la position des variables continues et remplacement par des variables discretes créées ci-dessus
+npred <- -grep('(Cle|Duree_credit|Montant_credit|Age)', names(credit))
+credit2 <- credit[,npred]
+credit2$Age <- Age
+credit2$Duree_credit <- Duree_credit
+credit2$Montant_credit <- Montant_credit
+
+credit2$Cible <- factor(credit2$Cible)
+
+
+# 2- Algorithme Apriori
+## 2-1- Identification des règles d'associations
+rules <- apriori(credit2, parameter = list(supp = 0.1, conf = 0.8, maxlen = 9, target = "rules"))
+summary(rules)
+
+## 2-2- Visualusation
+plot(rules, shading='order', control=list(main='Two-key'))
+plot (rules, interactive=TRUE)
+
+## 2-3- Inspecter les règles associations
+inspect(sort(rules, by = 'lift', decreasing = TRUE)[1:15])
+
+## 2-4- Selection des règles en spécifiant le paramètre confidence
+rules2 <- apriori(credit2, parameter = list(supp = 0.1, conf = 0.8, maxlen = 9, target = "rules"),
+                 appearance = list(rhs = c('Cible=1', 'Cible=2'), default='lhs'))
+summary(rules2)
+
+## 2-5- Visualusation
+plot(rules2, shading='order', control=list(main='Two-key'))
+plot (rules2, interactive=TRUE)
+
+# Inspecter les règles associations
+inspect(sort(rules2, by = 'confidence', decreasing = TRUE)[1:15])
