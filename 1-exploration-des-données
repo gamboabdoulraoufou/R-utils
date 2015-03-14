@@ -5,7 +5,7 @@ library(car) # package permettant d'allouer un libellé à une modalité
 library(gmodels) # package qui permet de faire un tableau du style proc freq de sas
 library(questionr) # calcul du v-cramer
 library(corrplot) # affichage du cramer 
-library(pRoc) # Calcul de l'aire sous la courbe de ROC
+library(pROC) # Calcul de l'aire sous la courbe de ROC
 
 
 # Résumé des variables
@@ -141,7 +141,6 @@ CrossTable(data_[,'Comptes'], data_[,'Cible'], prop.chisq=F, chisq=T, format="SA
 
 
 # Discrétisation automatique des varibles
-evol_auc <- NA
 disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo="Nelder-Mead", graphe=0) {
     # renommage des variable
     attach(data_)
@@ -160,10 +159,10 @@ disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo
         qX <- cut(X, s2)
         tab <- table(qX,Y)
         logit <- glm(Y~qX, family=binomial(link="logit"))
-        qXn <- predict(logi, newdata=base[is.na(Xt)==0,], type='response')
-        resultat <- auc(Y,qXn, partial.auc=c(1,pAUC), partial.auc.correct=FALSE) *
+        qXn <- predict(logit, newdata=data_[is.na(Xt)==0,], type='response')
+        resultat <- auc(Y, qXn, partial.auc=c(1,pAUC), partial.auc.correct=FALSE) *
                     (1-sum((table(qX)/length(X))^2))/(1-(1-h)*(sum((table(qX)/length(X))^2))) * 
-                    ((1-(1-K)*(sum(prop.table(tab,1)[,2])^2)))/(1-sum((prop.table(tab,1)[,2])^2)))
+                    ((1-(1-k)*(sum((prop.table(tab,1)[,2])^2)))/(1-sum((prop.table(tab,1)[,2])^2)))
         
         return (-resultat)
     }
@@ -236,6 +235,7 @@ disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo
         text(xlim1[2]*0.8, ylim1[2]*0.5, texte, cex = 0.75)
         plot(X~Y, horizontal = TRUE, xlab = deparse(substitute(y)), col = c('blue', 'red'))
     }
+    
     return (evol_auc)
 }
 
