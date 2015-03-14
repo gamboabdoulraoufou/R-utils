@@ -239,17 +239,20 @@ disc_function <- function(data_, x, y, h=0, k=0, pAUC=0, nbmod=3, calcul=1, algo
     return (evol_auc)
 }
 
-disc <- function (data_, list_var_quant, cible, max_class = 5) {
+disc <- function (data_, list_var_quant, cible, max_class = 5, resume = 1) {
     disc_resume <- matrix(NA, length(list_var_quant), 5)
     for (i in (1:length(list_var_quant))) {
         disc_resume[i,1] <- list_var_quant[i]
         for (j in (2:max_class)) {
-            evol_auc <- disc_function (data_, list_var_quant[i], cible, nbmod = j, h = 0, k = 0, pAUC = 0.8, graphe = 1)
+            evol_auc <- disc_function (data_, list_var_quant[i], cible, nbmod = j, h = 0, k = 0, pAUC = 0.8, graphe = 0)
             disc_resume[i,j] <- evol_auc 
         }
+    }
+    colmanes(disc_resume) <- c('Variable', 'Aug_AUC1', 'Aug_AUC2', 'Aug_AUC3', 'Aug_AUC4', 'Aug_AUC5')
     
     # Afficher le resumé de la discretisation automatique
-    print (disc_resume)
+    if (resume == 1) {
+        print (disc_resume)
     }
 }
 
