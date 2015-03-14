@@ -10,3 +10,7 @@ myVariablesNames <- c("Comptes", "Duree_credit", "Historique_credit", "Objet_cre
 # Chargement des données
 credit = read.table("http://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data", h=FALSE, 
 col.names=myVariablesNames)
+
+# Recodage des variables
+credit$Cible[credit$Cible == 1] <- 0
+credit$Cible[credit$Cible == 2] <- 1
