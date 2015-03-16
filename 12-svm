@@ -1,1 +1,41 @@
+# Installation des packages
+install.packages('e1071')
+
+library(e1071) # Package permettant de mettre en oeuvre les svm en regression ou en classement
+
+# Recherche de la valeur du paramètre qui minimise l'erreur
+set.seed(123)
+swmlin <- tune.svm(Cible ~., data = credit[id, vars]), kernel = 'linear', cost = 10^(-3:1))
+summary(svmlin)
+plot(svmlin)
+
+# SVM à noyau linéaire
+svmlin <- svm(Cible~., data = credit[id,vars], kernel = 'linear', probability = TRUE, cost = 1)
+
+# SVM à noyau linéaire avec cross validation
+svmlin <- svm(Cible~., data = credit[id,vars], kernel = 'linear', probability = TRUE, 
+              cost = 1, cross = 10)
+
+# Resumé du modèle
+summary(svm)
+
+# Coefficient: ils correspondent aux deux forntières de la marge (+/-)
+head(svmlin$coefs)
+
+# Les prédictions du modèle sont dans svmlin$fitted
+table(svmlin$fitted, credit[id, 'Cible'])
+
+# Taux d'erreur
+mean(svmlin$fitted != credit[id, 'Cible'])
+
+# Aire sous la courbe de ROC
+pred <- prediction(as.numeric(svmlin$fitted), credit[id, 'Cible'], label.ordering=c(0,1))
+performance(pred, "auc")@y.values[[1]]
+
+# Prédiction
+test$svmlin <- predict(svmlin, test,probability = TRUE, decision.value = TRUE)
+test$svmlin
+attr('probabilities')
+
+
 
