@@ -4,7 +4,7 @@ library(lattice) # graphiques R
 library(car) # package permettant d'allouer un libellé à une modalité
 library(gmodels) # package qui permet de faire un tableau du style proc freq de sas
 library(questionr) # calcul du v-cramer
-library(corrplot) # affichage du cramer 
+library(corrplot) # affichage synthetique du coefficient de corrélation et V-cramer 
 library(pROC) # Calcul de l'aire sous la courbe de ROC
 
 
@@ -39,6 +39,22 @@ data_ = credit
 by(data_[,list_var_quant], list(Cible=data_[,cible]), summary)
 
 # Correlation
+corr_croise_function <- function (data_) {
+  # calcul des coeffcients de corrélation
+  corr <- matrix(NA, ncol(data_), ncol(data_))
+  for (i in (1:ncol(data_))) {
+    for (j in (1:ncol(data_))) {
+      corr[i,j] <- cor(data_[,i], data_[,j])
+    }
+  }
+  colnames(corr) <- colnames(data_)
+  rownames(corr) <- colnames(data_)
+  
+  print (corr)
+  
+  # Affichage du corr
+  corrplot(corr, type='upper', tl.str=45, tl.cl='black', diag=F, addCoef.col='black', addCoefasPercent=T)
+}
 
 
 # K-Wallis normalisé: tester l'intensité de la liaison entre la variable cible et les variables quantitatives
@@ -61,7 +77,21 @@ k_walis_function <- function (data_, list_var_quant, cible) {
 }
 
 # K-Wallis croisé
-
+k_walis_croise_function <- function (data_) {
+  k_wallis <- matrix(NA, ncol(data_), ncol(data_))
+  for (i in (1:ncol(data_))) {
+    for (j in (1:ncol(data_))) {
+      k_wallis[j,i] <- sqrt(kruskal.test(data_[,i]~data_[,j])$statistic/sum(!is.na(data_[,j])))
+    }
+  }
+  colnames(k_wallis) <- colnames(data_)
+  rownames(k_wallis) <- colnames(data_)
+  
+  print (k_wallis)
+  
+  # Affichage du corr
+  corrplot(k_wallis, type='upper', tl.str=45, tl.cl='black', diag=F, addCoef.col='black', addCoefasPercent=T)
+}
 
 # V-Cramer: tester l'intensité de la liaison entre la variable cible et les variables qualitatives
 cramer_function <- function (data_, list_var_quant, cible) {
