@@ -34,3 +34,19 @@ rf <- randomForest(cible ~., data = data_[id, vars], importance=TRUE, ntree = 50
 # Affichage du modèle
 rf
 
+# Afficher les votes par individus
+head(rf$votes)
+
+# Nombre d'arbre dont un individu x est out of bag.
+head(rf$oob.times)
+
+rf$pred <- ifelse(rf$votes[,2] >= 0.5, 1, 0)
+table (rf$pred)
+
+err_oob <- sum(rf$pred != data_[id,cible]/nrow(data_[id,])
+err_oob
+
+
+
+
+
