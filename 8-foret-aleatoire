@@ -1,1 +1,36 @@
-#
+# Installation des packages
+install.package('RandomForest')
+
+# Chargement des packages
+library(RandomForest)
+
+# Choix du nombre q de predicteur à inclure dans le modèle
+## Par défaut q = racine carrée du nombre des préducteur
+## Pour une base de 16 prédicteurs dont 6 sont discriminants, q sertai égal à 4. 
+
+## Calculons la probabilité d'avoir 1 prédicteur discriminant dans les 4 arbres
+dhyper(1,6,10,4)
+
+## Calculons la probabilité d'avoir au moins 1 prédicteur discriminant dans les 4 arbres
+dhyper((1,6,10,4)+(2,6,10,4)+(3,6,10,4)+(4,6,10,4)+(5,6,10,4)+(6,6,10,4)
+
+## Pour que q soit bon, il faudra que la probabilité d'avoir au moins 1 prédicteur discriminant dans chaque arbre soit > 0.5
+
+# Initialiser la valeur du seed
+set.seed(235)
+
+# Modèle le seuil des votes est de 50% pour basculer dans une classe
+rf <- randomForest(cible ~., data = data_[id, vars], importance=TRUE, ntree = 500, mtry =3, replace = T, 
+                  keep.forest = T, nodesize = 5, ytest = test[,cible], xtest = test[, var_quanti])
+
+
+# Affichage du modèle
+rf
+
+# Modèle en baissant le seuil de la deuxème classe de 50% des votes à 25% des votes
+rf <- randomForest(cible ~., data = data_[id, vars], importance=TRUE, ntree = 500, mtry =3, replace = T, 
+                  keep.forest = T, nodesize = 5, ytest = test[,cible], xtest = test[, var_quanti], cutoff=c(0.5, 0.25))
+                  
+# Affichage du modèle
+rf
+
