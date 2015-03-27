@@ -1,1 +1,38 @@
-#
+# Installation des packages
+install.packages("CHAID", repos = "http://R-forge.R-project.org")
+
+
+# Chargement des packages
+library("CHAID")
+library(ROCR)
+
+# method='class' pour une classification et method='anova' pour une regression
+# L'option split permet de selectionner le critère de mesure de pureté de l'arbre (Gini, entropie et taux d'erreur).
+# L'indice de Gini est utilisé par défaut. split = 'information'|'gini'| ''
+
+
+# Initialiser la valeur de seed
+set.seed(235)
+
+# Arbre
+cart <- rpart(cible ~., data = data_[id, vars], method = 'class', parms = list(split = 'gini'), 
+              control = list(minbucket = 30, minsplit = 30*2, maxdepth = 4))
+              
+# Afficher les scissions de l'arbre et des noeuds obtenus
+cart
+
+# Pour afficher plus d'informations
+summary(cart, digits=2) # L'option digit = 2 permet d'afficher 2 chiffres après la virgule
+
+# Affichage de l'arbre
+plot(cart, branch=0.2, uniform=T, compress=T, margin=0.1)
+text(cart, fancy=T, use.n=T, pretty=0, all=T, cex=0.6)
+
+# Prédiction
+test$CART4f <- predict(prunedcart4f, type = 'prob', test)
+pred <- prediction(test$CART4f[,2], test[, cible], label.ordering=c(0,1))
+auc <- performance(pred, 'auc')
+
+
+
+
