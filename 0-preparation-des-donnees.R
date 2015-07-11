@@ -40,7 +40,7 @@ for (i in (1:ncol(credit))) {
 }
 
 # Creation de la liste des variables
-vars <- -grep('Cle|Cible', names(credit))
+vars <- -grep('Cle', names(credit))
 
 # Echantillonnage
 set.seed(235)
