@@ -107,3 +107,44 @@ est$value
 # 5- SVM à noyau polynomial
 
 # 6- SVM après réduction de dimension
+## 6-1-ACM
+### 6-1-1 Calcul du nombre de modalités des variables qualitatives
+modal <- apply(data_[,-1], 2, function(x) nlevels(as.factor(x)))
+modal
+
+nb_facteur <- sum(modal) - ncol(data_[,-1])
+
+### 6-1-2 ACM
+ACM <- MCA(data_, ncp=nb_facteur, axes=c(1,2), graph=TRUE, quali.sup=14)
+
+### 6-1-3 Inertie total (somme des valeurs propres au carré)
+ACM$eig[,1]
+(sum(modal)/ncol(data_[,-1])) - 1
+
+### 6-2 SVM a noyau lineaire sur les axes factoriels
+### 6-2-1 Modele
+nb_axes <- 2
+x <- ACM$ind$coord[churneur, 1:nb_axes]
+y <- data_[churneur, "Cible"]
+
+ksvmlin <- ksvm(x, y, type="C-svc", kernel="vanilladot", C=1, prob.model=TRUE)
+
+### 6-2-1 Application du modèle à l'echantillon test
+x_test <- ACM$ind$coord[-churneur, 1:nb_axes]
+y_test < data_[churneur, "Cible"]
+
+pred_ksvm <- predict(ksvmlin, type="prob", x_test)
+
+### 6-2-3 performance du modèle
+performance(pred, "auc")@y.values[[1]]
+
+### 6-2-4 recherche du nombre d'axe factoriel et coût optimal
+f <- function(i) {
+  ksvm <- svm(x, y, kernel="linear", cost=i, probaility=TRUE)
+  predsvm <- prediction(attr(predksvm, "probability")[,1], y_test, label.ordering=c(0,1))
+  performance(pred, "auc")@y.values[[1]]
+}
+
+
+### 6-1-2
+### 6-1-2
