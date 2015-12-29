@@ -138,13 +138,41 @@ pred_ksvm <- predict(ksvmlin, type="prob", x_test)
 ### 6-2-3 performance du modèle
 performance(pred, "auc")@y.values[[1]]
 
-### 6-2-4 recherche du nombre d'axe factoriel et coût optimal
+### 6-2-4 Recherche du nombre d'axe factoriel et coût optimal (boucle sur le bariable * cout)
 f <- function(i) {
   ksvm <- svm(x, y, kernel="linear", cost=i, probaility=TRUE)
   predsvm <- prediction(attr(predksvm, "probability")[,1], y_test, label.ordering=c(0,1))
   performance(pred, "auc")@y.values[[1]]
 }
 
+for (n in seq(5, 20, by=1) {
+  i <- seq(0.01, 2, by=0.01)
+  x <- ACM$ind$coord[churneur, 1:n]
+  y <- data_[churneur, "Cible"]
+  x_test <- ACM$ind$coord[-churneur, 1:n]
+  k <- vectorize(f)(i)
+  cout <- i[which(k==max(k), arr.ind=TRUE)[1]]
+  cat("\n", "nb facteurs = ", n, " AUC test max = ", max(k), " coût = ", cout)
+}
+
+# Radial gaussien
+f <- function(i,j) {
+  ksvm <- svm(x, y, kernel="radial", cost=i, gamma=j, probaility=TRUE)
+  predksvm <- prediction(attr(predksvm, "probability")[,1], y_test, label.ordering=c(0,1))
+  performance(pred, "auc")@y.values[[1]]
+}
+
+for (n in seq(5, 30, by=1) {
+  i <- seq(0.05, 5, by=0.05)
+  j <- seq(0.01, 0.5, by=0.01)
+  x <- ACM$ind$coord[churneur, 1:n]
+  y <- data_[churneur, "Cible"]
+  x_test <- ACM$ind$coord[-churneur, 1:n]
+  k <- outer(i, j, vectorize(f))
+  cout <- i[which(k==max(k), arr.ind=TRUE)[1, 1]]
+  gamma <- j[which(k==max(k), arr.ind=TRUE)[1, 2]]
+  cat("\n", "nb facteurs = ", n, " AUC test max = ", max(k), " coût = ", cout, " gamma = ", gamma)
+}
 
 ### 6-1-2
 ### 6-1-2
